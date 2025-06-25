@@ -1,0 +1,242 @@
+{
+  "name": "이메일보내기",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -340,
+        -280
+      ],
+      "id": "d92d0517-bd9d-4f99-a7da-48e76b0ca3c4",
+      "name": "When chat message received",
+      "webhookId": "e89cb38f-750a-4599-84fc-ffd6ceeef917"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=너는 신문 기자. 아래 기사 제목들을 모두 모아서 5개 항목으로 정리해줘. 영어는 한국어로 번역해줘.\n{{ $json.articles[0].title }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        40,
+        -100
+      ],
+      "id": "0909607c-e6f5-48fa-b24c-bf66a904a12f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        120
+      ],
+      "id": "5816345e-b89a-4e65-b097-23bf0d669b0b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5YU5N5MI2H8UYZ24",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "오늘의 뉴스",
+        "message": "={{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        460,
+        -100
+      ],
+      "id": "c05d97c5-78a1-4adb-b11b-3835514e4dac",
+      "name": "Send a message",
+      "webhookId": "0263df76-8f47-4d01-ab7b-911922dafe49",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "A3lmh2Vy2Sz5sxUC",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://newsapi.org/v2/top-headlines",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "e1dadd900de04ba293c77abd7d909070"
+            },
+            {
+              "name": "country",
+              "value": "us"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -120,
+        -100
+      ],
+      "id": "50357f9a-8af2-4109-a8ce-e77548ab5598",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uYCsDxEsr32fCTGHBZ602X9aRwcEB13Cvan7Pr5TE-Q",
+          "mode": "list",
+          "cachedResultName": "이메일목록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uYCsDxEsr32fCTGHBZ602X9aRwcEB13Cvan7Pr5TE-Q/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "시트1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uYCsDxEsr32fCTGHBZ602X9aRwcEB13Cvan7Pr5TE-Q/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        280,
+        180
+      ],
+      "id": "1bfe44de-0b4c-46ed-8a47-73b8f44b412d",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cM777RMkadAtBw9g",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11,
+              "triggerAtMinute": 50
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -320,
+        -80
+      ],
+      "id": "5e6a4178-e569-4440-b14b-27ebc0c881c6",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7a0d58a5-ac5b-444f-a7cf-2a0f1a861ea0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "15facf83ff93cb5fd04eaa5ea24464ff8dbe38b18eb0c8e7b3d05a0fa9f87a7d"
+  },
+  "id": "NoRYHvsBZDETFrkc",
+  "tags": []
+}
